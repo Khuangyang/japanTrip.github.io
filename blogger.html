@@ -43,12 +43,9 @@
   
   /* Table Wrapper - FIXED FOR RESPONSIVE */
   .table-wrapper {
-    max-width: 700px;
+    max-width: 100%;   /* Full width by default */
     width: 100%;
-    margin: 30px auto;
-    background: #fff;
-    padding: 20px;	
-    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+    ...
   }
   
   .table-title {
@@ -138,7 +135,12 @@
   table.table td .add {
     display: none;
   }
-  
+  /*Desktop Responsive*/
+  @media (min-width: 992px) {
+    .table-wrapper {
+      max-width: 900px;  /* 900px only on large screens */
+      }
+  }
   /* Mobile Responsive */
   @media (max-width: 768px) {
     .table-wrapper {
