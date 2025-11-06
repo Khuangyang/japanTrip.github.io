@@ -43,9 +43,7 @@
   
   /* Table Wrapper - FIXED FOR RESPONSIVE */
   .table-wrapper {
-    max-width: 100%;   /* Full width by default */
-    width: 100%;
-    ...
+    max-width: 1000px;  /* Won't stretch beyond 1000px */
   }
   
   .table-title {
@@ -74,7 +72,7 @@
   }
   
   table.table {
-    table-layout: fixed;
+    table-layout: auto;  /* Columns size based on content */
   }
   
   table.table tr th, table.table tr td {
