@@ -137,33 +137,15 @@
     </div>
 
     <!-- Table -->
-    <div class="container">
-        <h1>🗾 Famous Spots in Japan</h1>
+
         
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search by name or location...">
-                <select id="categoryFilter">
-                    <option value="">All Categories</option>
-                </select>
-                <button onclick="search()">Search</button>
-                <button onclick="resetSearch()">Reset</button>
-            </div>
-            <div class="stats">
-                <span id="statsText">Loading database...</span>
-            </div>
-        </div>
-        
-        <div id="loading" class="loading">Loading Japan spots database...</div>
-        
-        <div id="tableContainer" class="table-container" style="display: none;">
-            <table>
-                <thead>
-                    <tr id="tableHeader"></tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
+    <div class="container-fluid">
+        <table class="table">
+            <thead>
+                <tr id="tableHeader"></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
 
     <script>
