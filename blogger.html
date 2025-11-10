@@ -182,24 +182,19 @@
               var place = $("#place").val();
               var location = $("#location").val();
       
-              if (firstName !== "" && lastName !== "") {
+              if (place !== "" && location !== "") {
                   // Send data to Google Apps Script
                   $.ajax({
                       url: WEB_APP_URL,
                       data: JSON.stringify({
                           action: "add",
-                          firstName: firstName,
-                          lastName: lastName
+                          place: place,
+                          location: location
                       }),
                       type: "POST",
                       contentType: "application/json",
                       success: function (response) {
                           console.log("Success:", response);
-                          // Add the row to the HTML table ONLY after successful submission
-                          var newRow = "<tr><td>" + firstName + "</td><td>" + lastName + "</td><td><button class='editBtn'>Edit</button> <button class='deleteBtn'>Delete</button></td></tr>";
-                          $("#myTable tbody").append(newRow);
-                          $("#firstName").val('');
-                          $("#lastName").val('');
                       },
                       error: function (xhr, status, error) {
                           console.error("Error:", error);
