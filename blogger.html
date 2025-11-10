@@ -200,6 +200,12 @@
                       redirect: "follow", 
                       success: function (response) {
                           alert("Success:", response);
+                          var newRow = "<tr><td>" + place + "</td><td>" + location + "</td><td>" + category + "</td><td>" + rating + "</td><td><button class='editBtn'>Edit</button> <button class='deleteBtn'>Delete</button></td></tr>";
+                          $("#table tbody").append(newRow);
+                          $("#place").val('');
+                          $("#location").val('');
+                          $("#category").val('');
+                          $("#rating").val('');
                       },
                       error: function (xhr, status, error) {
                           console.error("Error:", error);
