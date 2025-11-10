@@ -137,16 +137,61 @@
     </div>
 
     <!-- Table -->
-
-        
-    <div class="container-fluid">
-        <table class="table">
-            <thead>
-                <tr id="tableHeader"></tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+    <div class="m-3">
+      <table id="add_table" class="table" data-toggle="table" data-mobile-responsive="true">
+        <thead>
+          <tr>
+            <th>使用者</th>
+            <th>啟用日</th>
+            <th>到期日</th>
+            <th>...</th>
+            <th>
+              <button class="btn btn-outline-success" id="add_row" class="add"> add 
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <input type="text" class="form-control">
+            </td>
+            <td>
+              <input type="text" class="form-control">
+            </td>
+            <td>
+              <input type="text" class="form-control">
+            </td>
+            <td>
+              <input type="number" class="form-control">
+            </td>
+            <td>
+              <button class="btn btn-outline-danger delete_row">remove</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+  <script>
+    $(document).ready(function() {
+
+      $('#add_row').click(function() {
+        //Add row
+        row = '';
+        row += '<tr><td><input type="text" class="form-control"></td><td ><input type="date" class="form-control"></td><td><input type="date" class="form-control"></td><td><input type="number" class="form-control"></td>';
+        row += '<td><button class="btn btn-outline-danger delete_row">remove</button></td></tr>';
+        $("tbody").append(row);
+      })
+    
+      $("#add_table").on('click', '.delete_row', function() {
+        $(this).closest('tr').remove();
+      });
+    
+    });
+    
+  </script>
+  
 
 </body>
 </html>
