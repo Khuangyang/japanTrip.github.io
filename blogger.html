@@ -313,10 +313,10 @@
       const $row = $('.addRowBtn').closest('tr');
       
       var newRow = '<tr>' +
-          '<td>' + name + '</td>' +
-          '<td>' + address + '</td>' +
-          '<td>' + category.replace(/_/g, ' ') + '</td>' +
-          '<td>' + rating + '</td>' +
+          '<td class="place">' + name + '</td>' +
+          '<td class="location>' + address + '</td>' +
+          '<td class="category">' + category.replace(/_/g, ' ') + '</td>' +
+          '<td class="rating">' + rating + '</td>' +
           '<td><button class="btn btn-outline-success addRowBtn">add</button></td>' +
           '<td><button class="btn btn-outline-danger delete_row">remove</button></td>' +
           '</tr>';
@@ -340,10 +340,10 @@
       
       $(document).on("click", ".addRowBtn", function () {
         const $row = $(this).closest('tr');
-        const place = $row[0].val();
-        const location = $row[1].val();
-        const category = $row[2].val();
-        const rating = $row[3].val();
+        const place = $row.find('.place').val();
+        const location = $row.find('.location').val();
+        const category = $row.find('.category').val();
+        const rating = $row.find('.rating').val();
 
         if (place !== "" && location !== "") {
           var newRow = '<tr>' +
