@@ -156,16 +156,16 @@
         <tbody>
           <tr>
             <td>
-              <input type="text" id="place" class="form-control">
+              <input type="text" class="form-control place">
             </td>
             <td>
-              <input type="text" id="location" class="form-control">
+              <input type="text" class="form-control location">
             </td>
             <td>
-              <input type="text" id="category" class="form-control">
+              <input type="text" class="form-control category">
             </td>
             <td>
-              <input type="number" id="rating" class="form-control">
+              <input type="number" class="form-control rating">
             </td>
             <td>
               <button class="btn btn-outline-success addRowBtn">add</button>
@@ -338,12 +338,12 @@
     $(document).ready(function () {
       const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxkuo4NVsZ7Q_Iw975qy8Cl9aYtb7LPOTwTZhLOfOLqEtt6PY-QKvrik61ORRHw36Xyyw/exec';
       
-      $(".addRowBtn").on("click", function () {
-        var $row = $(this).closest('tr');
-        var place = $row.find('#place').val();
-        var location = $row.find('#location').val();
-        var category = $row.find('#category').val();
-        var rating = $row.find('#rating').val();
+      $(document).on("click", ".addRowBtn", function () {
+        const $row = $(this).closest('tr');
+        const place = $row.find('.place').val();
+        const location = $row.find('.location').val();
+        const category = $row.find('.category').val();
+        const rating = $row.find('.rating').val();
 
         if (place !== "" && location !== "") {
           var newRow = '<tr>' +
