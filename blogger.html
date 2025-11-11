@@ -261,52 +261,72 @@
 
     async function showPlaceDetails(place) {
       try {
-        const name = place.displayName?.text || 'Unknown Place';
-        const address = place.formattedAddress || 'No address available';
-        const rating = place.rating || 'N/A';
-        const category = place.types && place.types.length > 0
-          ? place.types[0].replace(/_/g, ' ')
-          : 'Unknown';
-    
-        let content = `
-          <div class="info-window-content">
-            <h5>${name}</h5>
-            <p><strong>Rating:</strong> ${rating}</p>
-            <p><strong>Address:</strong> ${address}</p>
-            <p><strong>Category:</strong> ${category}</p>
-            <button class="btn btn-sm btn-primary mt-2" 
-              onclick="addToTable('${escapeQuotes(name)}', '${escapeQuotes(address)}', '${escapeQuotes(category)}', '${rating}')">
-              Add to Table
-            </button>
-          </div>
-        `;
-    
+        // Fetch full details
+        await place.fetchFields({
+          fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'regularOpeningHours', 'websiteURI']
+        });
+
+        let content = '<div class="info-window-content">';
+        content += `<h5>${place.displayName || 'Unknown Place'}</h5>`;
+        
+        if (place.rating) {
+          content += `<p><strong>Rating:</strong> ${place.rating} ⭐ (${place.userRatingCount || 0} reviews)</p>`;
+        }
+        
+        if (place.formattedAddress) {
+          content += `<p><strong>Address:</strong> ${place.formattedAddress}</p>`;
+        }
+        
+        if (place.types && place.types.length > 0) {
+          const category = place.types[0].replace(/_/g, ' ');
+          content += `<p><strong>Category:</strong> ${category}</p>`;
+        }
+        
+        if (place.regularOpeningHours) {
+          const isOpen = place.regularOpeningHours.isOpen ? place.regularOpeningHours.isOpen() : null;
+          if (isOpen !== null) {
+            content += `<p><strong>Status:</strong> ${isOpen ? '🟢 Open' : '🔴 Closed'}</p>`;
+          }
+        }
+        
+        if (place.websiteURI) {
+          content += `<p><a href="${place.websiteURI}" target="_blank">Visit Website</a></p>`;
+        }
+        
+        const safeName = (place.displayName || '').replace(/'/g, "\\'");
+        const safeAddress = (place.formattedAddress || '').replace(/'/g, "\\'");
+        const safeCategory = place.types ? place.types[0] : '';
+        
+        content += `<button class="btn btn-sm btn-primary mt-2" onclick="addToTable('${safeName}', '${safeAddress}', '${safeCategory}', '${place.rating || ''}')">Add to Table</button>`;
+        content += '</div>';
+
         infoWindow.setContent(content);
         infoWindow.setPosition(place.location);
         infoWindow.open(map);
       } catch (error) {
-        console.error('Error showing place details:', error);
+        console.error('Error fetching place details:', error);
       }
     }
-    
-    function escapeQuotes(str) {
-      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    }
-    
+
+    // Function to add place info to table
     function addToTable(name, address, category, rating) {
       const $row = $('.addRowBtn').closest('tr');
-      const newRow = `
-        <tr>
-          <td>${name}</td>
-          <td>${address}</td>
-          <td>${category}</td>
-          <td>${rating}</td>
-          <td><button class="btn btn-outline-danger delete_row">remove</button></td>
-        </tr>
-      `;
+      
+      var newRow = '<tr>' +
+          '<td>' + name + '</td>' +
+          '<td>' + address + '</td>' +
+          '<td>' + category.replace(/_/g, ' ') + '</td>' +
+          '<td>' + rating + '</td>' +
+          '<td><button class="btn btn-outline-success addRowBtn">add</button></td>' +
+          '<td><button class="btn btn-outline-danger delete_row">remove</button></td>' +
+          '</tr>';
+      
       $row.before(newRow);
-    
-      if (infoWindow) infoWindow.close();
+      
+      // Close the info window
+      if (infoWindow) {
+        infoWindow.close();
+      }
     }
 
     // Wait for Google Maps to load before initializing
