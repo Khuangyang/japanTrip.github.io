@@ -338,46 +338,39 @@
       const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxkuo4NVsZ7Q_Iw975qy8Cl9aYtb7LPOTwTZhLOfOLqEtt6PY-QKvrik61ORRHw36Xyyw/exec';
       
       $(".addRowBtn").on("click", function () {
-        var $row = $(this).closest('tr');
-        var place = $row.find('#place').val();
-        var location = $row.find('#location').val();
-        var category = $row.find('#category').val();
-        var rating = $row.find('#rating').val();
+              var place = $("#place").val();
+              var location = $("#location").val();
+              var category = $("#category").val();
+              var rating = $("#rating").val();
 
         if (place !== "" && location !== "") {
-          var newRow = '<tr>' +
-              '<td>' + place + '</td>' +
-              '<td>' + location + '</td>' +
-              '<td>' + category + '</td>' +
-              '<td>' + rating + '</td>' +
-              '<td><button class="btn btn-outline-danger delete_row">remove</button></td>' +
-              '</tr>';
-          
-          $row.before(newRow);
-          $row.find('input').val('');
-          
-          $.ajax({
-              url: WEB_APP_URL,
-              data: JSON.stringify({
-                  action: "add",
-                  place: place,
-                  location: location,
-                  category: category,
-                  rating: rating
-              }),
-              type: "POST",
-              contentType: "application/json",
-              success: function (response) {
-                  console.log("Success:", response);
-              },
-              error: function (xhr, status, error) {
-                  console.error("Error:", error);
-              }
-          });
-        } else {
-            alert("Please fill in at least Place and Location fields.");
-        }
-      });
+                  // Send data to Google Apps Script
+                  $.ajax({
+                      url: WEB_APP_URL,
+                      data: JSON.stringify({
+                          action: "add",
+                          place: place,
+                          location: location,
+                          category: category,
+                          rating: rating,
+                      }),
+                      type: "POST",
+                      contentType: "text/plain;charset=utf-8", 
+                      redirect: "follow", 
+                      success: function (response) {
+                          alert("Success:", response);
+                          var newRow = "<tr><td>" + place + "</td><td>" + location + "</td><td>" + category + "</td><td>" + rating + "</td><td><button class='editBtn'>Edit</button> <button class='deleteBtn'>Delete</button></td></tr>";
+                          $("#table tbody").append(newRow);
+                          $("#place").val('');
+                          $("#location").val('');
+                          $("#category").val('');
+                          $("#rating").val('');
+                      },
+                      error: function (xhr, status, error) {
+                          console.error("Error:", error);
+                          alert("Failed to save data to Google Sheet.");
+                      }
+                  });
 
       // Delete row functionality
       $(document).on('click', '.delete_row', function() {
