@@ -340,10 +340,10 @@
       
       $(document).on("click", ".addRowBtn", function () {
         const $row = $(this).closest('tr');
-        const place = $row.find('.place').val();
-        const location = $row.find('.location').val();
-        const category = $row.find('.category').val();
-        const rating = $row.find('.rating').val();
+        const place = $row[0].val();
+        const location = $row[1].val();
+        const category = $row[2].val();
+        const rating = $row[3].val();
 
         if (place !== "" && location !== "") {
           var newRow = '<tr>' +
