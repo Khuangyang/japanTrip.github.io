@@ -6,6 +6,7 @@
   <title>Khuang Yang Blogger</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="icon" href="data:,">
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
   
   <style>
@@ -325,8 +326,10 @@
       }
     }
 
-    // Initialize map when page loads
-    initMap();
+    // Wait for Google Maps to load before initializing
+    window.addEventListener('load', () => {
+      initMap();
+    });
 
     // Table functionality
     $(document).ready(function () {
