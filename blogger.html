@@ -338,39 +338,47 @@
       const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxkuo4NVsZ7Q_Iw975qy8Cl9aYtb7LPOTwTZhLOfOLqEtt6PY-QKvrik61ORRHw36Xyyw/exec';
       
       $(".addRowBtn").on("click", function () {
-              var place = $("#place").val();
-              var location = $("#location").val();
-              var category = $("#category").val();
-              var rating = $("#rating").val();
+        var $row = $(this).closest('tr');
+        var place = $row.find('#place').val();
+        var location = $row.find('#location').val();
+        var category = $row.find('#category').val();
+        var rating = $row.find('#rating').val();
 
         if (place !== "" && location !== "") {
-                  // Send data to Google Apps Script
-                  $.ajax({
-                      url: WEB_APP_URL,
-                      data: JSON.stringify({
-                          action: "add",
-                          place: place,
-                          location: location,
-                          category: category,
-                          rating: rating,
-                      }),
-                      type: "POST",
-                      contentType: "text/plain;charset=utf-8", 
-                      redirect: "follow", 
-                      success: function (response) {
-                          alert("Success:", response);
-                          var newRow = "<tr><td>" + place + "</td><td>" + location + "</td><td>" + category + "</td><td>" + rating + "</td><td><button class='editBtn'>Edit</button> <button class='deleteBtn'>Delete</button></td></tr>";
-                          $("#table tbody").append(newRow);
-                          $("#place").val('');
-                          $("#location").val('');
-                          $("#category").val('');
-                          $("#rating").val('');
-                      },
-                      error: function (xhr, status, error) {
-                          console.error("Error:", error);
-                          alert("Failed to save data to Google Sheet.");
-                      }
-                  });
+          var newRow = '<tr>' +
+              '<td>' + place + '</td>' +
+              '<td>' + location + '</td>' +
+              '<td>' + category + '</td>' +
+              '<td>' + rating + '</td>' +
+              '<td><button class="btn btn-outline-danger delete_row">remove</button></td>' +
+              '</tr>';
+          
+          $row.before(newRow);
+          $row.find('input').val('');
+          
+          // Use fetch with GET method and query parameters (works with Google Apps Script)
+          const params = new URLSearchParams({
+              action: "add",
+              place: place,
+              location: location,
+              category: category,
+              rating: rating
+          });
+          
+          fetch(WEB_APP_URL + '?' + params.toString(), {
+              method: 'GET',
+              mode: 'no-cors' // This bypasses CORS but won't return response
+          })
+          .then(() => {
+              console.log("Data sent to Google Sheets");
+          })
+          .catch(error => {
+              console.error("Error:", error);
+          });
+        } else {
+            alert("Please fill in at least Place and Location fields.");
+        }
+      });
 
       // Delete row functionality
       $(document).on('click', '.delete_row', function() {
@@ -382,7 +390,7 @@
   <!-- IMPORTANT: Replace YOUR_API_KEY with your actual Google Maps API key -->
   <script>
     (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-      key: "AIzaSyDCcPel8TpdWZrbZj9IYP5_UOZLc5gPyGU",
+      key: "YOUR_API_KEY",
       v: "weekly",
     });
   </script>
