@@ -181,110 +181,128 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-    // Initialize the map
+    // Initialize the map using new Google Maps API
     let map;
     let infoWindow;
-    let service;
 
-    function initMap() {
+    async function initMap() {
+      // Load required libraries
+      const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+      const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+      const { Place } = await google.maps.importLibrary("places");
+
       // Center on Mount Fuji area
       const center = { lat: 35.3606, lng: 138.7274 };
       
-      map = new google.maps.Map(document.getElementById("map"), {
+      map = new Map(document.getElementById("map"), {
         zoom: 10,
         center: center,
+        mapId: "DEMO_MAP_ID", // Required for Advanced Markers
       });
 
-      infoWindow = new google.maps.InfoWindow();
-      service = new google.maps.places.PlacesService(map);
+      infoWindow = new InfoWindow();
 
-      // Search for nearby places
-      const request = {
-        location: center,
-        radius: 50000, // 50km radius
-        type: ['tourist_attraction', 'park', 'museum']
-      };
+      // Search for nearby places using the new API
+      await searchNearbyPlaces(center);
 
-      service.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          for (let i = 0; i < Math.min(results.length, 20); i++) {
-            createMarker(results[i]);
-          }
-        }
+      // Add click listener to the map
+      map.addListener('click', async (event) => {
+        await searchNearbyPlaces(event.latLng, 500);
       });
+    }
 
-      // Add click listener to the map itself
-      map.addListener('click', (event) => {
-        // Find nearby place at clicked location
+    async function searchNearbyPlaces(location, radius = 50000) {
+      try {
+        const { places } = await google.maps.importLibrary("places");
+        
         const request = {
-          location: event.latLng,
-          radius: 100,
+          fields: ['displayName', 'location', 'types', 'rating', 'userRatingCount'],
+          locationRestriction: {
+            center: location,
+            radius: radius,
+          },
+          includedTypes: ['tourist_attraction', 'park', 'museum'],
+          maxResultCount: 20,
         };
 
-        service.nearbySearch(request, (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-            showPlaceDetails(results[0].place_id, event.latLng);
-          }
-        });
-      });
-    }
-
-    function createMarker(place) {
-      if (!place.geometry || !place.geometry.location) return;
-
-      const marker = new google.maps.Marker({
-        map: map,
-        position: place.geometry.location,
-        title: place.name,
-      });
-
-      // Add click listener to marker
-      marker.addListener('click', () => {
-        showPlaceDetails(place.place_id, place.geometry.location);
-      });
-    }
-
-    function showPlaceDetails(placeId, location) {
-      const request = {
-        placeId: placeId,
-        fields: ['name', 'formatted_address', 'rating', 'user_ratings_total', 'photos', 'types', 'opening_hours', 'website']
-      };
-
-      service.getDetails(request, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          let content = '<div class="info-window-content">';
-          content += `<h5>${place.name}</h5>`;
+        const { places: results } = await google.maps.places.Place.searchNearby(request);
+        
+        if (results && results.length > 0) {
+          results.forEach(place => {
+            createMarker(place);
+          });
           
-          if (place.rating) {
-            content += `<p><strong>Rating:</strong> ${place.rating} ⭐ (${place.user_ratings_total || 0} reviews)</p>`;
+          // If it's a small radius search, show details of first result
+          if (radius < 1000 && results[0]) {
+            showPlaceDetails(results[0]);
           }
-          
-          if (place.formatted_address) {
-            content += `<p><strong>Address:</strong> ${place.formatted_address}</p>`;
-          }
-          
-          if (place.types && place.types.length > 0) {
-            const category = place.types[0].replace(/_/g, ' ');
-            content += `<p><strong>Category:</strong> ${category}</p>`;
-          }
-          
-          if (place.opening_hours) {
-            const isOpen = place.opening_hours.isOpen();
-            content += `<p><strong>Status:</strong> ${isOpen ? '🟢 Open' : '🔴 Closed'}</p>`;
-          }
-          
-          if (place.website) {
-            content += `<p><a href="${place.website}" target="_blank">Visit Website</a></p>`;
-          }
-          
-          content += `<button class="btn btn-sm btn-primary mt-2" onclick="addToTable('${place.name}', '${place.formatted_address || ''}', '${place.types ? place.types[0] : ''}', '${place.rating || ''}')">Add to Table</button>`;
-          content += '</div>';
-
-          infoWindow.setContent(content);
-          infoWindow.setPosition(location);
-          infoWindow.open(map);
         }
+      } catch (error) {
+        console.error('Error searching places:', error);
+      }
+    }
+
+    async function createMarker(place) {
+      if (!place.location) return;
+
+      const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+      const marker = new AdvancedMarkerElement({
+        map: map,
+        position: place.location,
+        title: place.displayName,
       });
+
+      marker.addListener('click', () => {
+        showPlaceDetails(place);
+      });
+    }
+
+    async function showPlaceDetails(place) {
+      try {
+        // Fetch full details
+        await place.fetchFields({
+          fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'currentOpeningHours', 'websiteURI']
+        });
+
+        let content = '<div class="info-window-content">';
+        content += `<h5>${place.displayName || 'Unknown Place'}</h5>`;
+        
+        if (place.rating) {
+          content += `<p><strong>Rating:</strong> ${place.rating} ⭐ (${place.userRatingCount || 0} reviews)</p>`;
+        }
+        
+        if (place.formattedAddress) {
+          content += `<p><strong>Address:</strong> ${place.formattedAddress}</p>`;
+        }
+        
+        if (place.types && place.types.length > 0) {
+          const category = place.types[0].replace(/_/g, ' ');
+          content += `<p><strong>Category:</strong> ${category}</p>`;
+        }
+        
+        if (place.currentOpeningHours) {
+          const isOpen = place.currentOpeningHours.isOpen();
+          content += `<p><strong>Status:</strong> ${isOpen ? '🟢 Open' : '🔴 Closed'}</p>`;
+        }
+        
+        if (place.websiteURI) {
+          content += `<p><a href="${place.websiteURI}" target="_blank">Visit Website</a></p>`;
+        }
+        
+        const safeName = (place.displayName || '').replace(/'/g, "\\'");
+        const safeAddress = (place.formattedAddress || '').replace(/'/g, "\\'");
+        const safeCategory = place.types ? place.types[0] : '';
+        
+        content += `<button class="btn btn-sm btn-primary mt-2" onclick="addToTable('${safeName}', '${safeAddress}', '${safeCategory}', '${place.rating || ''}')">Add to Table</button>`;
+        content += '</div>';
+
+        infoWindow.setContent(content);
+        infoWindow.setPosition(place.location);
+        infoWindow.open(map);
+      } catch (error) {
+        console.error('Error fetching place details:', error);
+      }
     }
 
     // Function to add place info to table
@@ -306,6 +324,9 @@
         infoWindow.close();
       }
     }
+
+    // Initialize map when page loads
+    initMap();
 
     // Table functionality
     $(document).ready(function () {
@@ -361,7 +382,12 @@
   </script>
 
   <!-- IMPORTANT: Replace YOUR_API_KEY with your actual Google Maps API key -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCcPel8TpdWZrbZj9IYP5_UOZLc5gPyGU&libraries=places&callback=initMap" async defer></script>
+  <script>
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+      key: "AIzaSyDCcPel8TpdWZrbZj9IYP5_UOZLc5gPyGU",
+      v: "weekly",
+    });
+  </script>
 
 </body>
 </html>
