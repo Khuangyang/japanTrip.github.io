@@ -311,14 +311,19 @@
 
     // Function to add place info to table
     function addToTable(name, address, category, rating) {
+      // Validate that we have at least name and address
+      if (!name || name === 'Unknown Place' || !address || address === 'No address available') {
+        alert("Please fill in at least Place and Location fields.");
+        return;
+      }
+      
       const $row = $('.addRowBtn').closest('tr');
       
       var newRow = '<tr>' +
           '<td class="place">' + name + '</td>' +
           '<td class="location">' + address + '</td>' +
-          '<td class="category">' + category.replace(/_/g, ' ') + '</td>' +
+          '<td class="category">' + category + '</td>' +
           '<td class="rating">' + rating + '</td>' +
-          '<td><button class="btn btn-outline-success addRowBtn">add</button></td>' +
           '<td><button class="btn btn-outline-danger delete_row">remove</button></td>' +
           '</tr>';
       
