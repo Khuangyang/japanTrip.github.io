@@ -293,9 +293,10 @@
           content += `<p><a href="${place.websiteURI}" target="_blank">Visit Website</a></p>`;
         }
         
-        const safeName = (place.displayName || '').replace(/'/g, "\\'");
-        const safeAddress = (place.formattedAddress || '').replace(/'/g, "\\'");
-        const safeCategory = place.types ? place.types[0] : '';
+        const safeName = (place.displayName || 'Unknown Place').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeAddress = (place.formattedAddress || 'No address available').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeCategory = place.types && place.types.length > 0 ? place.types[0].replace(/_/g, ' ') : 'Unknown';
+        const safeRating = place.rating || '';
         
         content += `<button class="btn btn-sm btn-primary mt-2" onclick="addToTable('${safeName}', '${safeAddress}', '${safeCategory}', '${place.rating || ''}')">Add to Table</button>`;
         content += '</div>';
