@@ -392,7 +392,9 @@
 
         // Add geo if available
         if (place.location) {
-          content += `<p><a href="${place.location}" target="_blank">geo</a></p>`;
+          const lat = place.location.lat();
+          const lng = place.location.lng();
+          content += `<p><strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>`;
         }
         
         // Prepare data for the "Add to Table" button
