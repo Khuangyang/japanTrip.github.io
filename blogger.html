@@ -185,6 +185,7 @@
     // Initialize the map using new Google Maps API
     let map;
     let infoWindow;
+    let markers = []; // Array to store all markers
 
     async function initMap() {
       // Load required libraries
@@ -208,8 +209,15 @@
 
       // Add click listener to the map
       map.addListener('click', async (event) => {
-        await searchNearbyPlaces(event.latLng, 500);
+        await searchNearbyPlaces(event.latLng, 5000);
+        });
+      }
+    // Function to clear all markers from the map
+    function clearMarkers() {
+      markers.forEach(marker => {
+        marker.map = null; // Remove marker from map
       });
+      markers = []; // Clear the array
     }
 
     async function searchNearbyPlaces(location, radius = 50000) {
@@ -227,6 +235,8 @@
         };
 
         const { places: results } = await google.maps.places.Place.searchNearby(request);
+        // Clear existing markers before adding new ones
+        clearMarkers();
         
         if (results && results.length > 0) {
           results.forEach(place => {
@@ -234,7 +244,7 @@
           });
           
           // If it's a small radius search, show details of first result
-          if (radius < 1000 && results[0]) {
+          if (radius < 10000 && results[0]) {
             showPlaceDetails(results[0]);
           }
         }
@@ -253,6 +263,9 @@
         position: place.location,
         title: place.displayName,
       });
+      
+      // Add marker to our tracking array
+      markers.push(marker);
 
       marker.addListener('click', () => {
         showPlaceDetails(place);
