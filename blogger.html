@@ -273,7 +273,6 @@
             'tourist_attraction',      // Main landmarks
             'historical_landmark',     // Historical sites
             'park',                    // Parks & gardens
-            'shrine',                  // Shrines (very important in Japan!)
             'amusement_park',          // Theme parks
             'spa',                     // Hot springs (onsen)
             'market',                  // Traditional markets
@@ -391,6 +390,11 @@
         // Add website link if available
         if (place.websiteURI) {
           content += `<p><a href="${place.websiteURI}" target="_blank">Visit Website</a></p>`;
+        }
+
+        // Add geo if available
+        if (place.location) {
+          content += `<p><a href="${place.location}" target="_blank">geo</a></p>`;
         }
         
         // Prepare data for the "Add to Table" button
