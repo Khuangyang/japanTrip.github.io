@@ -346,7 +346,7 @@
         // Request more detailed information about this place
         await place.fetchFields({
           fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 
-                   'types', 'regularOpeningHours', 'websiteURI','openingHours','geometry']
+                   'types', 'regularOpeningHours', 'websiteURI', 'location']
         });
 
         // Build HTML content for the info window
