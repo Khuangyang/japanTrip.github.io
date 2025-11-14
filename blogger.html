@@ -191,6 +191,68 @@
     let infoWindow;    // Stores the popup window that shows place details
     let markers = [];  // Array to keep track of all map markers (pins)
 
+    // Your preset hotel/accommodation locations
+    const myLocations = [
+      { name: "Resol Poshtel Tokyo", lat: 35.71366141275859, lng: 139.79131272698618 },
+      { name: "Tokoko Inn Fujikawa", lat: 35.50525411957015, lng: 138.7600462957958 },
+      { name: "Hot Spring Inn Hakone", lat: 35.23976736201863, lng: 139.0720150882234 },
+      { name: "Hotel Livemax Shinjuku", lat: 35.69725760840773, lng: 139.70271239316762 }
+    ];
+
+    /* ========================================
+       HELPER FUNCTION: Calculate Distance Between Two Points
+       Uses the Haversine formula to calculate distance in kilometers
+       ======================================== */
+    
+    function calculateDistance(lat1, lng1, lat2, lng2) {
+      // Radius of Earth in kilometers
+      const R = 6371;
+      
+      // Convert degrees to radians
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      
+      const lat1Rad = lat1 * Math.PI / 180;
+      const lat2Rad = lat2 * Math.PI / 180;
+      
+      // Haversine formula
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      
+      // Distance in kilometers
+      const distance = R * c;
+      
+      return distance;
+    }
+
+    /* ========================================
+       HELPER FUNCTION: Find Nearest Location
+       Returns the nearest preset location and its distance
+       ======================================== */
+    
+    function findNearestLocation(placeLat, placeLng) {
+      let nearestLocation = null;
+      let shortestDistance = Infinity;
+      
+      // Check distance to each preset location
+      myLocations.forEach(location => {
+        const distance = calculateDistance(placeLat, placeLng, location.lat, location.lng);
+        
+        if (distance < shortestDistance) {
+          shortestDistance = distance;
+          nearestLocation = location;
+        }
+      });
+      
+      return {
+        location: nearestLocation,
+        distance: shortestDistance
+      };
+    }
+
     /* ========================================
        PART 2: INITIALIZE THE MAP
        This function runs when the page loads
@@ -203,8 +265,8 @@
       const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
       const { Place } = await google.maps.importLibrary("places");
 
-      // Step 2: Set the center point of the map Resol poshtel (Tokyo)
-      const center = { lat: 35.71366141275859, lng: 139.79131272698618 };
+      // Step 2: Set the center point of the map (Mount Fuji coordinates)
+      const center = { lat: 35.3606, lng: 138.7274 };
       
       // Step 3: Create the map and display it in the element with id="map"
       map = new Map(document.getElementById("map"), {
@@ -216,12 +278,12 @@
       // Step 4: Create an info window (the popup that appears when you click markers)
       infoWindow = new InfoWindow();
 
+      // Step 4.5: Add markers for your hotels with different colors
+      await addHotelMarkers();
+
       // Step 5: Search for places near Mount Fuji when page loads
       // Parameters: (location, radius in meters, should we clear old markers?)
       await searchNearbyPlaces(center, 50000, true);
-      await searchNearbyPlaces({lat: 35.50525411957015, lng: 138.7600462957958}, 20000);  // Tokoko Inn (Fujikawa)
-      await searchNearbyPlaces({lat: 35.23976736201863, lng: 139.0720150882234}, 20000);  // Hot Spring Inn Hakone (Hakone)
-      await searchNearbyPlaces({lat: 35.69725760840773, lng: 139.70271239316762}, 20000);  // Hotel Livemax Shinjuku (Toyko)
 
       // Step 6: Add a click listener - when user clicks the map, search that area
       map.addListener('click', async (event) => {
@@ -269,15 +331,9 @@
           },
           
           // What types of places to find
-          includedTypes: [
-              'tourist_attraction',    // Landmarks
-              'park',                  // Parks
-              'shopping_mall',         // Shopping
-              'restaurant',            // Food
-              'spa'                    // Onsen
-            ],
+          includedTypes: ['tourist_attraction', 'shopping_mall', 'restaurant'],
           
-          // Maximum number of results
+          // Maximum number of results (Google API limit: 1-20)
           maxResultCount: 20,
         };
 
@@ -343,6 +399,68 @@
     }
 
     /* ========================================
+       PART 5.5: ADD HOTEL MARKERS WITH CUSTOM COLORS
+       Creates colored markers for your preset hotel locations
+       ======================================== */
+    
+    async function addHotelMarkers() {
+      // Load the marker library
+      const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+      
+      // Define colors for each hotel (you can change these!)
+      const colors = [
+        '#4285F4',  // Blue
+        '#34A853',  // Green
+        '#9334E6',  // Purple
+        '#FF6B35'   // Orange
+      ];
+      
+      // Create a marker for each hotel
+      myLocations.forEach((hotel, index) => {
+        // Create a custom colored pin
+        const pinElement = new PinElement({
+          background: colors[index],           // Pin color
+          borderColor: '#FFFFFF',              // White border
+          glyphColor: '#FFFFFF',               // White icon/text color
+          scale: 1.3,                          // Make it bigger than regular pins
+        });
+        
+        // Create the marker with the custom pin
+        const marker = new AdvancedMarkerElement({
+          map: map,
+          position: { lat: hotel.lat, lng: hotel.lng },
+          title: hotel.name,
+          content: pinElement.element,         // Use our custom colored pin
+        });
+        
+        // Add click listener to show hotel info
+        marker.addListener('click', () => {
+          showHotelDetails(hotel, colors[index]);
+        });
+        
+        // Store marker (but in a separate array so they don't get cleared)
+        // We don't add these to the markers[] array
+      });
+    }
+
+    /* ========================================
+       PART 5.6: SHOW HOTEL DETAILS IN POPUP
+       Display information about the hotel when clicked
+       ======================================== */
+    
+    function showHotelDetails(hotel, color) {
+      let content = '<div class="info-window-content">';
+      content += `<h5 style="color: ${color}">🏨 ${hotel.name}</h5>`;
+      content += `<p><strong>Type:</strong> Your Accommodation</p>`;
+      content += `<p><strong>Coordinates:</strong> ${hotel.lat.toFixed(6)}, ${hotel.lng.toFixed(6)}</p>`;
+      content += '</div>';
+      
+      infoWindow.setContent(content);
+      infoWindow.setPosition({ lat: hotel.lat, lng: hotel.lng });
+      infoWindow.open(map);
+    }
+
+    /* ========================================
        PART 6: SHOW PLACE DETAILS IN POPUP
        When user clicks a marker, show info about that place
        ======================================== */
@@ -352,7 +470,7 @@
         // Request more detailed information about this place
         await place.fetchFields({
           fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 
-                   'types', 'regularOpeningHours', 'websiteURI', 'location']
+                   'types', 'regularOpeningHours', 'websiteURI']
         });
 
         // Build HTML content for the info window
@@ -388,13 +506,6 @@
         // Add website link if available
         if (place.websiteURI) {
           content += `<p><a href="${place.websiteURI}" target="_blank">Visit Website</a></p>`;
-        }
-
-        // Add geo if available
-        if (place.location) {
-          const lat = place.location.lat();
-          const lng = place.location.lng();
-          content += `<p><strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>`;
         }
         
         // Prepare data for the "Add to Table" button
