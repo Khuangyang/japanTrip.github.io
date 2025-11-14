@@ -254,6 +254,36 @@
     }
 
     /* ========================================
+       HELPER FUNCTION: Fit Map to Show All Markers
+       Automatically adjusts map zoom and position to show all markers
+       ======================================== */
+    
+    function fitMapToMarkers() {
+      if (markers.length === 0) {
+        console.log('⚠️ No markers to fit map to');
+        return;
+      }
+
+      // Create bounds object
+      const bounds = new google.maps.LatLngBounds();
+      
+      // Add each marker position to bounds
+      markers.forEach(marker => {
+        bounds.extend(marker.position);
+      });
+      
+      // Add hotel positions to bounds
+      myLocations.forEach(hotel => {
+        bounds.extend({ lat: hotel.lat, lng: hotel.lng });
+      });
+      
+      // Fit the map to show all markers
+      map.fitBounds(bounds);
+      
+      console.log(`🗺️ Map adjusted to show ${markers.length} place markers + ${myLocations.length} hotel markers`);
+    }
+
+    /* ========================================
        PART 2: INITIALIZE THE MAP
        This function runs when the page loads
        ======================================== */
@@ -376,26 +406,39 @@
        ======================================== */
     
     async function createMarker(place) {
-      // If the place doesn't have a location, skip it
-      if (!place.location) return;
+      try {
+        // If the place doesn't have a location, skip it
+        if (!place.location) {
+          console.warn('⚠️ Skipping place without location:', place.displayName);
+          return false;
+        }
 
-      // Load the marker library
-      const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+        // Load the marker library
+        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-      // Create a new marker
-      const marker = new AdvancedMarkerElement({
-        map: map,                      // Which map to put it on
-        position: place.location,      // Where to put it (lat/lng coordinates)
-        title: place.displayName,      // Text shown when hovering over marker
-      });
+        // Create a new marker
+        const marker = new AdvancedMarkerElement({
+          map: map,                      // Which map to put it on
+          position: place.location,      // Where to put it (lat/lng coordinates)
+          title: place.displayName,      // Text shown when hovering over marker
+        });
 
-      // Add this marker to our tracking array
-      markers.push(marker);
+        // Log marker creation for debugging
+        console.log(`✅ Created marker for: ${place.displayName} at (${place.location.lat()}, ${place.location.lng()})`);
 
-      // Add a click listener - when user clicks the marker, show details
-      marker.addListener('click', () => {
-        showPlaceDetails(place);
-      });
+        // Add this marker to our tracking array
+        markers.push(marker);
+
+        // Add a click listener - when user clicks the marker, show details
+        marker.addListener('click', () => {
+          showPlaceDetails(place);
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('❌ Error creating marker:', error, place);
+        return false;
+      }
     }
 
     /* ========================================
